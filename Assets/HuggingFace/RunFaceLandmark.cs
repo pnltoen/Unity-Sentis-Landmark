@@ -4,6 +4,7 @@ using UnityEngine.Video;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Lays = Unity.Sentis.Layers;
+using System;
 
 /*
  *                   Face Landmarks Inference
@@ -62,6 +63,7 @@ public class RunFaceLandmark : MonoBehaviour
     bool closing = false;
 
     Texture2D canvasTexture;
+    Action<Texture> RunInference;
 
     void Start()
     {
@@ -72,6 +74,7 @@ public class RunFaceLandmark : MonoBehaviour
         SetupInput();
         SetupModel();
         SetupEngine();
+        RunInference = HandleRunInference;
     }
 
     void SetupModel()
@@ -166,6 +169,7 @@ public class RunFaceLandmark : MonoBehaviour
             var offset = new Vector2((1 - gap) / 2, vflip ? 1 : 0);
 
             Graphics.Blit(webcam, targetTexture, scale, offset);
+            RunInference?.Invoke(targetTexture);
         }
         if (inputType == InputType.Video)
         {
@@ -188,19 +192,19 @@ public class RunFaceLandmark : MonoBehaviour
     {
         if (!closing)
         {
-            RunInference(targetTexture);
+            //RunInference(targetTexture);
         }
     }
 
-    void RunInference(Texture source)
+    void HandleRunInference(Texture source)
     {
+        Debug.Log("Run Inference");
         var transform = new TextureTransform();
         transform.SetDimensions(size, size, 3);
         transform.SetTensorLayout(0, 3, 1, 2);
         using var image = TextureConverter.ToTensor(source, transform);
 
         // The image has pixels in the range [0..1]
-
         worker.Execute(image);
 
         using var landmarks= worker.PeekOutput("conv2d_21") as TensorFloat;
