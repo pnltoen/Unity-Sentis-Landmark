@@ -211,8 +211,9 @@ public class RunFaceLandmark : MonoBehaviour
         float scaleX = targetTexture.width * 1f / size;
         float scaleY = targetTexture.height * 1f / size;
 
-        landmarks.CompleteOperationsAndDownload();
-        DrawLandmarks(landmarks, scaleX, scaleY);
+        //landmarks.CompleteOperationsAndDownload();
+        var downloadLandmarksCopied = landmarks.ReadbackAndClone();
+        DrawLandmarks(downloadLandmarksCopied, scaleX, scaleY);
     }
 
     void DrawLandmarks(TensorFloat landmarks, float scaleX, float scaleY)
