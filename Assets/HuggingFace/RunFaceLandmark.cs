@@ -94,7 +94,8 @@ public class RunFaceLandmark : MonoBehaviour
         //Used for drawing the markers:
         canvasTexture = new Texture2D(targetTexture.width, targetTexture.height);
 
-        previewUI.texture = targetTexture;
+        //previewUI.texture = targetTexture;
+        previewUI.texture = canvasTexture;
     }
 
     void SetupMarkers()
@@ -198,7 +199,6 @@ public class RunFaceLandmark : MonoBehaviour
 
     void HandleRunInference(Texture source)
     {
-        Debug.Log("Run Inference");
         var transform = new TextureTransform();
         transform.SetDimensions(size, size, 3);
         transform.SetTensorLayout(0, 3, 1, 2);
@@ -207,38 +207,34 @@ public class RunFaceLandmark : MonoBehaviour
         // The image has pixels in the range [0..1]
         worker.Execute(image);
 
-        using var landmarks= worker.PeekOutput("conv2d_21") as TensorFloat;
-        
-        //This gives the condifidence:
-        //using var confidence = worker.PeekOutput("conv2d_31") as TensorFloat;
+        using var landmarks = worker.PeekOutput("conv2d_21") as TensorFloat;
 
-        float scaleX = targetTexture.width * 1f / size;
-        float scaleY = targetTexture.height * 1f / size;
+        float scaleX = canvasTexture.width * 1f / size;
+        float scaleY = canvasTexture.height * 1f / size;
 
-        //landmarks.CompleteOperationsAndDownload();
         var downloadLandmarksCopied = landmarks.ReadbackAndClone();
         DrawLandmarks(downloadLandmarksCopied, scaleX, scaleY);
     }
 
     void DrawLandmarks(TensorFloat landmarks, float scaleX, float scaleY)
     {
-        int numLandmarks = landmarks.shape[3] / 3; //468 face landmarks
+        int numLandmarks = landmarks.shape[3] / 3; // 468 face landmarks
 
-        RenderTexture.active = targetTexture;
-        canvasTexture.ReadPixels(new Rect(0, 0, targetTexture.width, targetTexture.height), 0, 0);
+        // Clear canvasTexture
+        Color32 clearColor = new Color32(0, 0, 0, 0); // Transparent
+        Color32[] clearPixels = new Color32[canvasTexture.width * canvasTexture.height];
+        for (int i = 0; i < clearPixels.Length; i++) clearPixels[i] = clearColor;
+        canvasTexture.SetPixels32(clearPixels);
 
         for (int n = 0; n < numLandmarks; n++)
         {
             int px = (int)(landmarks[0, 0, 0, n * 3 + 0] * scaleX) - (markerWidth - 1) / 2;
             int py = (int)(landmarks[0, 0, 0, n * 3 + 1] * scaleY) - (markerWidth - 1) / 2;
-            int pz = (int)(landmarks[0, 0, 0, n * 3 + 2] * scaleX);
-            int destX = Mathf.Clamp(px, 0, targetTexture.width - 1 - markerWidth);
-            int destY = Mathf.Clamp(targetTexture.height - 1 - py, 0, targetTexture.height - 1 - markerWidth);
+            int destX = Mathf.Clamp(px, 0, canvasTexture.width - 1 - markerWidth);
+            int destY = Mathf.Clamp(canvasTexture.height - 1 - py, 0, canvasTexture.height - 1 - markerWidth);
             canvasTexture.SetPixels32(destX, destY, markerWidth, markerWidth, markerPixels);
         }
         canvasTexture.Apply();
-        Graphics.Blit(canvasTexture, targetTexture);
-        RenderTexture.active = null;
     }
 
     void CleanUp()
