@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using Lays = Unity.Sentis.Layers;
 using System;
+using TMPro;
 
 /*
  *                   Face Landmarks Inference
@@ -64,6 +65,9 @@ public class RunFaceLandmark : MonoBehaviour
 
     Texture2D canvasTexture;
     Action<Texture> RunInference;
+
+    public GameObject tmpText;
+    Vector3 trans_tempText;
 
     void Start()
     {
@@ -228,11 +232,21 @@ public class RunFaceLandmark : MonoBehaviour
 
         for (int n = 0; n < numLandmarks; n++)
         {
+            float displayWidth = previewUI.rectTransform.rect.width;
+            float displayHeight = previewUI.rectTransform.rect.height;
+
             int px = (int)(landmarks[0, 0, 0, n * 3 + 0] * scaleX) - (markerWidth - 1) / 2;
             int py = (int)(landmarks[0, 0, 0, n * 3 + 1] * scaleY) - (markerWidth - 1) / 2;
-            int destX = Mathf.Clamp(px, 0, canvasTexture.width - 1 - markerWidth);
-            int destY = Mathf.Clamp(canvasTexture.height - 1 - py, 0, canvasTexture.height - 1 - markerWidth);
-            canvasTexture.SetPixels32(destX, destY, markerWidth, markerWidth, markerPixels);
+            //int destX = Mathf.Clamp(px, 0, canvasTexture.width - 1 - markerWidth);
+            //int destY = Mathf.Clamp(canvasTexture.height - 1 - py, 0, canvasTexture.height - 1 - markerWidth);
+            //canvasTexture.SetPixels32(destX, destY, markerWidth, markerWidth, markerPixels);
+
+            TextMeshProUGUI textMeshProUGUI = tmpText.GetComponent<TextMeshProUGUI>();
+            float uguiX = (px - 0.5f) * displayHeight;
+            float uguiY = (py - 0.5f) * displayWidth;
+            trans_tempText = new Vector3(uguiX, uguiY, 0);
+            GameObject landmakrs = Instantiate(tmpText, trans_tempText, Quaternion.identity);
+            textMeshProUGUI.text = n.ToString();
         }
         canvasTexture.Apply();
     }
