@@ -220,11 +220,11 @@ public class RunFaceLandmark : MonoBehaviour
     {
         int numLandmarks = landmarks.shape[3] / 3; // 468 face landmarks
 
-        // Clear canvasTexture
+        /*// Clear canvasTexture
         Color32 clearColor = new Color32(0, 0, 0, 0); // Transparent
         Color32[] clearPixels = new Color32[canvasTexture.width * canvasTexture.height];
         for (int i = 0; i < clearPixels.Length; i++) clearPixels[i] = clearColor;
-        canvasTexture.SetPixels32(clearPixels);
+        canvasTexture.SetPixels32(clearPixels);*/
 
         for (int n = 0; n < numLandmarks; n++)
         {
